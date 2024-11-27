@@ -102,7 +102,7 @@ def prepare_static_seq_table_flyer_and_detectors_with_same_trigger(
 
 def fly_and_collect(
     stream_name: str,
-    flyer: StandardFlyer[SeqTableInfo] | StandardFlyer[PcompInfo],
+    flyers: list[StandardFlyer[SeqTableInfo]] | list[StandardFlyer[PcompInfo]],
     detectors: list[StandardDetector],
 ):
     """Kickoff, complete and collect with a flyer and multiple detectors.
@@ -113,14 +113,15 @@ def fly_and_collect(
 
     """
     yield from bps.declare_stream(*detectors, name=stream_name, collect=True)
-    yield from bps.kickoff(flyer, wait=True)
+    for flyer in flyers:
+        yield from bps.kickoff(flyer, wait=True)
     for detector in detectors:
         yield from bps.kickoff(detector)
 
     # collect_while_completing
     group = short_uid(label="complete")
-
-    yield from bps.complete(flyer, wait=False, group=group)
+    for flyer in flyers:
+        yield from bps.complete(flyer, wait=False, group=group)
     for detector in detectors:
         yield from bps.complete(detector, wait=False, group=group)
 
