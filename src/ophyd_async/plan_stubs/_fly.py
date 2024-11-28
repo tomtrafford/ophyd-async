@@ -114,7 +114,7 @@ def fly_and_collect(
     """
     yield from bps.declare_stream(*detectors, name=stream_name, collect=True)
     for flyer in flyers:
-        yield from bps.kickoff(flyer, wait=True)
+        yield from bps.kickoff(flyer)
     for detector in detectors:
         yield from bps.kickoff(detector)
 
