@@ -1,5 +1,5 @@
 import pytest
-from scanspec.specs import Line, fly
+from scanspec.specs import Line, Repeat, fly
 
 from ophyd_async.core import DeviceCollector, set_mock_value
 from ophyd_async.epics.pmac import (
@@ -154,6 +154,93 @@ async def test_sim_pmac_simple_trajectory(sim_x_motor, sim_pmac) -> None:
     assert trigger_logic.scantime == 9.1
 
     await trigger_logic.kickoff()
+
+
+async def test_k14_pmac_simple_trajectory() -> None:
+    # Test the generated Trajectory profile from a scanspec
+    async with DeviceCollector():
+        a_motor = PmacMotor("BL14K-MO-CK3M-01:M1")
+        pmac = Pmac("BL14K-MO-CK3M-01", name="pmac")
+    spec = fly(
+        Repeat(10, gap=True) * ~Line(a_motor, 1, 1.2, 10),
+        0.005,
+    )
+    info = PmacTrajInfo(spec=spec)
+    trigger_logic = PmacTrajectoryTriggerLogic(pmac)
+    await trigger_logic.prepare(info)
+    # assert await trigger_logic.pmac.positions[1].get_value() == pytest.approx(
+    #     [
+    #         1.0,
+    #         1.0625,
+    #         1.125,
+    #         1.1875,
+    #         1.25,
+    #         1.3125,
+    #         1.375,
+    #         1.4375,
+    #         1.5,
+    #         1.5625,
+    #         1.625,
+    #         1.6875,
+    #         1.75,
+    #         1.8125,
+    #         1.875,
+    #         1.9375,
+    #         2.0,
+    #         2.0625,
+    #         2.0629340277777777,
+    #     ]
+    # )
+    # assert await trigger_logic.pmac.velocities[8].get_value() == pytest.approx(
+    #     [
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0.125,
+    #         0,
+    #     ]
+    # )
+    # assert await trigger_logic.pmac.time_array.get_value() == pytest.approx(
+    #     [
+    #         506944,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         500000,
+    #         6944,
+    #     ]
+    # )
+    # assert await trigger_logic.pmac.points_to_build.get_value() == 19
+    # assert trigger_logic.scantime == 9.01388888888889
+
+    # await trigger_logic.kickoff()
 
 
 async def test_sim_grid_trajectory(sim_x_motor, sim_y_motor, sim_pmac) -> None:
