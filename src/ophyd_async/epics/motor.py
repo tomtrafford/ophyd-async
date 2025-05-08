@@ -29,7 +29,11 @@ from ophyd_async.core import (
     observe_value,
 )
 from ophyd_async.core import StandardReadableFormat as Format
-from ophyd_async.epics.core import epics_signal_r, epics_signal_rw, epics_signal_w
+from ophyd_async.epics.core import (
+    epics_signal_r,
+    epics_signal_rw,
+    epics_signal_w,
+)
 
 __all__ = ["MotorLimitsException", "FlyMotorInfo", "Motor"]
 
@@ -110,6 +114,8 @@ class Motor(
 
         self.motor_stop = epics_signal_w(int, prefix + ".STOP")
 
+        self.motor_stop = epics_signal_w(int, prefix + ".STOP")
+        self.encoder_res = epics_signal_rw(float, prefix + ".ERES")
         # Whether set() should complete successfully or not
         self._set_success = True
 
